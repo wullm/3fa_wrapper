@@ -1,2 +1,1 @@
-Compute scale-dependent growth factors for massive neutrino cosmologies, following Zennaro+16.
-
+Wrapper of 3FA methods for computing cosmological tables and scale-dependent growth factors for massive neutrino cosmologies, using a 3-fluid model following Zennaro+16.
