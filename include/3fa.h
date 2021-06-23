@@ -24,9 +24,9 @@
 extern "C" {
 #endif
 
-#include "../include/units.h"
-#include "../include/cosmology_tables.h"
-#include "../include/fluid_equations.h"
+#include "units.h"
+#include "cosmology_tables.h"
+#include "fluid_equations.h"
 
 #ifdef __cplusplus
 }
