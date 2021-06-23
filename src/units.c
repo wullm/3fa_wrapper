@@ -21,7 +21,7 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#include "units.h"
+#include "../include/units.h"
 
 int set_physical_constants(struct units *us) {
     /* Some physical constants */

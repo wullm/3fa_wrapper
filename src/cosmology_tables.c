@@ -26,9 +26,9 @@
 
 #include <gsl/gsl_integration.h>
 
-#include "cosmology_tables.h"
-#include "units.h"
-#include "strooklat.h"
+#include "../include/cosmology_tables.h"
+#include "../include/units.h"
+#include "../include/strooklat.h"
 
 
 double F_integrand(double x, void *params) {

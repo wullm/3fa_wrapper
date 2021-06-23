@@ -27,8 +27,8 @@
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_errno.h>
 
-#include "fluid_equations.h"
-#include "strooklat.h"
+#include "../include/fluid_equations.h"
+#include "../include/strooklat.h"
 
 struct ode_params {
     struct strooklat *spline;
