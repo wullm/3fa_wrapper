@@ -88,6 +88,7 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
     /* Prepare a spline for the cosmological tables */
     spline_cosmo.x = tab->avec;
     spline_cosmo.size = tab->size;
+    init_strooklat_spline(&spline_cosmo, 100);
 }
 
 void integrate_fluid_equations(struct model *m, struct units *us,
