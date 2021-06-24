@@ -22,7 +22,6 @@
 
 #include "units.h"
 #include "cosmology_tables.h"
-#include "strooklat.h"
 
 struct growth_factors {
     /* Wavenumber (input) */
