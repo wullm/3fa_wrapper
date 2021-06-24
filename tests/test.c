@@ -68,10 +68,6 @@ int main() {
     /* Integrate the cosmological tables */
     integrate_cosmology_tables(&m, &us, &tab, 1000);
     
-    /* Prepare a spline to interpolate the cosmological tables */
-    struct strooklat spline_cosmo = {tab.avec, tab.size};
-    init_strooklat_spline(&spline_cosmo, 100);
-    
     /* Get the Hubble rate at a_start */
     double H_start = get_H_of_a(&tab, a_start);
     double H0 = get_H_of_a(&tab, 1.0);
@@ -83,7 +79,7 @@ int main() {
     /* Prepare integrating the fluid equations */
     const double tol = 1e-12;
     const double hstart = 1e-12;
-    prepare_fluid_integrator(&m, &us, &tab, &spline_cosmo, tol, hstart);
+    prepare_fluid_integrator(&m, &us, &tab, tol, hstart);
     
     /* Integrate */
     int k_size = 10;
@@ -109,7 +105,6 @@ int main() {
     free_fluid_integrator();
     
     /* Free the cosmological spline and tables */
-    free_strooklat_spline(&spline_cosmo);
     free_cosmology_tables(&tab);
     
     

@@ -69,13 +69,14 @@ struct ode_params odep;
 gsl_odeiv2_system sys = {func, NULL, 6, &odep};
 gsl_odeiv2_driver *d;
 
+struct strooklat spline_cosmo;
+
 void prepare_fluid_integrator(struct model *m, struct units *us,
-                               struct cosmology_tables *tab,
-                               struct strooklat *spline_cosmo, double tol,
+                               struct cosmology_tables *tab, double tol,
                                double hstart) {
 
     /* Prepare the parameters for the fluid ODEs */
-    odep.spline = spline_cosmo;
+    odep.spline = &spline_cosmo;
     odep.tab = tab;
     odep.f_b = m->Omega_b / (m->Omega_c + m->Omega_b);
     /* Neutrino speed of sound from Blas+14 (could use CLASS estimate instead) */
@@ -83,6 +84,10 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
 
     /* Allocate GSL ODE driver */
     d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk8pd, hstart, tol, tol);
+    
+    /* Prepare a spline for the cosmological tables */
+    spline_cosmo.x = tab->avec;
+    spline_cosmo.size = tab->size;
 }
 
 void integrate_fluid_equations(struct model *m, struct units *us,
@@ -125,4 +130,7 @@ void integrate_fluid_equations(struct model *m, struct units *us,
 void free_fluid_integrator() {
     /* Free the GSL ODE drive */
     gsl_odeiv2_driver_free(d);
+    
+    /* Free the spline */
+    free_strooklat_spline(&spline_cosmo);
 }

@@ -34,7 +34,7 @@ struct strooklat {
     /* The x values of the data points to be interpolated */
     const double *x;
     /* The number of data points */
-    const int size;
+    int size;
     /* The last index returned */
     int last_index;
 

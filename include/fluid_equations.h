@@ -47,8 +47,7 @@ void integrate_fluid_equations(struct model *m, struct units *us,
                                double a_start, double a_final);
 
 void prepare_fluid_integrator(struct model *m, struct units *us,
-                              struct cosmology_tables *tab,
-                              struct strooklat *spline_cosmo, double tol,
+                              struct cosmology_tables *tab, double tol,
                               double hstart);
 void free_fluid_integrator();
 
