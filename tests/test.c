@@ -60,19 +60,19 @@ int main() {
     set_physical_constants(&us);
     
     /* Starting and final redshifts */
-    const double a_start = 1.0 / 32.0;
+    const double a_start = 1.0 / 128.0;
     const double a_final = 1.0;
     
     printf("Integrating cosmological tables.\n");
     
     /* Integrate the cosmological tables */
-    integrate_cosmology_tables(&m, &us, &tab, 1000);
+    integrate_cosmology_tables(&m, &us, &tab, a_start, a_final, 1000);
     
     /* Get the Hubble rate at a_start */
     double H_start = get_H_of_a(&tab, a_start);
     double H0 = get_H_of_a(&tab, 1.0);
     printf("H(a_start) = %g 1/U_t\n", H_start);
-    printf("H(a_start) = %g km/s/Mpc\n", H_start / H0 * 100 * m.h);
+    printf("H(a_start) = %.10g km/s/Mpc\n", H_start / H0 * 100 * m.h);
     
     printf("Integrating fluid equations.\n");
     

@@ -63,7 +63,8 @@ double E2(double a, double Omega_CMB, double Omega_ur, double Omega_nu,
 }
 
 void integrate_cosmology_tables(struct model *m, struct units *us,
-                                struct cosmology_tables *tab, int size) {
+                                struct cosmology_tables *tab, double a_start,
+                                double a_final, int size) {
 
 
     /* Prepare interpolation tables of F(y) and G(y) with y > 0 */
@@ -115,8 +116,8 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
     init_strooklat_spline(&spline_y, 100);
 
     /* We want to interpolate the scale factor */
-    const double a_min = 1.0 / 32;
-    const double a_max = 1.01;
+    const double a_min = a_start;
+    const double a_max = fmax(a_final, 1.01);
     const double log_a_min = log(a_min);
     const double log_a_max = log(a_max);
     const double delta_log_a = (log_a_max - log_a_min) / size;
