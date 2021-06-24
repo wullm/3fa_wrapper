@@ -1,0 +1,119 @@
+/*******************************************************************************
+ * This file is part of 3FA.
+ * Copyright (c) 2020 Willem Elbers (whe@willemelbers.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <math.h>
+#include <3fa.h>
+
+int main() {
+    
+    /* 3FA structs */
+    struct model m;
+    struct units us;
+    struct cosmology_tables tab;
+    struct growth_factors gfac;
+    
+    /* Choice of neutrino masses */
+    double M_nu[1] = {0.067666666};
+    double deg_nu[1] = {3.0};
+
+    /* Specify the cosmological model */
+    m.h = 0.6771;
+    m.Omega_b = 0.0495;
+    m.Omega_c = 0.2491464152;
+    m.Omega_k = 0.;
+    m.N_ur = 0.00441;
+    m.N_nu = 1;
+    m.M_nu = M_nu;
+    m.deg_nu = deg_nu;
+    m.T_nu_0 = 1.951757805;
+    m.T_CMB_0 = 2.7255;
+    m.w0 = -1.0;
+    m.wa = 0.0;
+    m.sim_neutrino_nonrel_masses = 1;
+    
+    /* Set up 3FA unit system */
+    us.UnitLengthMetres = MPC_METRES;
+    us.UnitTimeSeconds = 1.0;
+    us.UnitMassKilogram = 1.0;
+    us.UnitTemperatureKelvin = 1.0;
+    us.UnitCurrentAmpere = 1.0;
+    set_physical_constants(&us);
+    
+    /* Starting and final redshifts */
+    const double a_start = 1.0 / 32.0;
+    const double a_final = 1.0;
+    
+    printf("Integrating cosmological tables.\n");
+    
+    /* Integrate the cosmological tables */
+    integrate_cosmology_tables(&m, &us, &tab, 1000);
+    
+    /* Prepare a spline to interpolate the cosmological tables */
+    struct strooklat spline_cosmo = {tab.avec, tab.size};
+    init_strooklat_spline(&spline_cosmo, 100);
+    
+    /* Get the Hubble rate at a_start */
+    double H_start = get_H_of_a(&tab, a_start);
+    double H0 = get_H_of_a(&tab, 1.0);
+    printf("H(a_start) = %g 1/U_t\n", H_start);
+    printf("H(a_start) = %g km/s/Mpc\n", H_start / H0 * 100 * m.h);
+    
+    printf("Integrating fluid equations.\n");
+    
+    /* Prepare integrating the fluid equations */
+    const double tol = 1e-12;
+    const double hstart = 1e-12;
+    prepare_fluid_integrator(&m, &us, &tab, &spline_cosmo, tol, hstart);
+    
+    /* Integrate */
+    int k_size = 10;
+    double log_k_min = log(1e-5);
+    double log_k_max = log(1e2);
+    for (int i=0; i<k_size; i++) {
+        double k = exp(log_k_min + i * (log_k_max - log_k_min) / k_size);
+    
+        gfac.k = k;
+        gfac.delta_b = 1.0;
+        gfac.delta_c = 1.0;
+        gfac.delta_n = exp(-k*k);
+        gfac.gb = 1.0;
+        gfac.gc = 1.0;
+        gfac.gn = 0.6;        
+    
+        integrate_fluid_equations(&m, &us, &tab, &gfac, a_start, a_final);
+    
+        printf("%g %g %g %g\n", gfac.k, gfac.Dc, gfac.Db, gfac.Dn);
+    }
+    
+    /* Done with integration */
+    free_fluid_integrator();
+    
+    /* Free the cosmological spline and tables */
+    free_strooklat_spline(&spline_cosmo);
+    free_cosmology_tables(&tab);
+    
+    
+    printf("All done.\n");
+    
+    return 0;
+}

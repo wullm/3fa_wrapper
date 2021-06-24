@@ -22,6 +22,7 @@
 
 #include "units.h"
 #include "cosmology_tables.h"
+#include "strooklat.h"
 
 struct growth_factors {
     /* Wavenumber (input) */
@@ -34,7 +35,7 @@ struct growth_factors {
     double gc;
     double gb;
     double gn;
-    /* Relative growth factors between a_start and a_final */
+    /* Relative growth factors between a_start and a_final (output) */
     double Dc;
     double Db;
     double Dn;
@@ -45,9 +46,10 @@ void integrate_fluid_equations(struct model *m, struct units *us,
                                struct growth_factors *gfac,
                                double a_start, double a_final);
 
-void prepare_fluid_integration(struct model *m, struct units *us,
-                               struct cosmology_tables *tab, double tol,
-                               double hstart);
-void clean_fluid_integration();
+void prepare_fluid_integrator(struct model *m, struct units *us,
+                              struct cosmology_tables *tab,
+                              struct strooklat *spline_cosmo, double tol,
+                              double hstart);
+void free_fluid_integrator();
 
 #endif

@@ -15,3 +15,6 @@ set_property(TARGET lib3fa PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(lib3fa PRIVATE m)
 target_link_libraries(lib3fa PRIVATE GSL::gsl)
 target_include_directories(lib3fa PUBLIC include)
+
+add_executable(test_3fa tests/test.c)
+target_link_libraries(test_3fa PRIVATE 3fa::lib3fa)

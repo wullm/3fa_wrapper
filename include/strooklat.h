@@ -34,7 +34,7 @@ struct strooklat {
     /* The x values of the data points to be interpolated */
     const double *x;
     /* The number of data points */
-    int size;
+    const int size;
     /* The last index returned */
     int last_index;
 
@@ -144,16 +144,16 @@ static inline int strooklat_find_x(struct strooklat *spline, double x, int *ind,
     double x_max = spline->x[sorted_id(0, size, !ascend)];
 
     /* Quickly return if the x value is out of bounds */
-    if (x > x_max) {
+    if (x >= x_max) {
         *ind = size - 2;
         *u = 1.0;
-    } else if (x < x_min) {
+    } else if (x <= x_min) {
         *ind = 0;
         *u = 0.0;
     }
 
     /* Quickly check the last index to see if it still works */
-    if (x > spline->x[sorted_id(spline->last_index, size, ascend)] &&
+    else if (x > spline->x[sorted_id(spline->last_index, size, ascend)] &&
             x <= spline->x[sorted_id(spline->last_index + 1, size, ascend)]) {
         *ind = spline->last_index;
     } else {

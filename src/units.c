@@ -38,6 +38,8 @@ int set_physical_constants(struct units *us) {
     us->ElectronVolt = ELECTRONVOLT_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
                     / us->UnitLengthMetres * us->UnitTimeSeconds
                     * us->UnitTimeSeconds; // J = kg*m^2/s^2
+    us->SoundSpeedNeutrinos = NEUTRINO_SOUND_SPEED_1EV_SI_UNITS * us->UnitTimeSeconds
+                        / us->UnitLengthMetres;
 
     return 0;
 }

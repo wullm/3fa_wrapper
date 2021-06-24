@@ -20,8 +20,6 @@
 #ifndef UNITS_H
 #define UNITS_H
 
-#define DEFAULT_STRING_LENGTH 150
-
 #define KM_METRES 1000
 #define MPC_METRES 3.085677581282e22
 
@@ -30,6 +28,8 @@
 #define PLANCK_CONST_SI_UNITS 6.62607015e-34 //J s
 #define BOLTZMANN_CONST_SI_UNITS 1.380649e-23 //J / K
 #define ELECTRONVOLT_SI_UNITS 1.602176634e-19 // J
+
+#define NEUTRINO_SOUND_SPEED_1EV_SI_UNITS 134423.0 // m / s
 
 struct units {
     double UnitLengthMetres;
@@ -44,6 +44,7 @@ struct units {
     double hPlanck;
     double kBoltzmann;
     double ElectronVolt;
+    double SoundSpeedNeutrinos;
 };
 
 int set_physical_constants(struct units *us);

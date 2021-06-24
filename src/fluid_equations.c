@@ -28,7 +28,6 @@
 #include <gsl/gsl_errno.h>
 
 #include "../include/fluid_equations.h"
-#include "../include/strooklat.h"
 
 struct ode_params {
     struct strooklat *spline;
@@ -70,26 +69,20 @@ struct ode_params odep;
 gsl_odeiv2_system sys = {func, NULL, 6, &odep};
 gsl_odeiv2_driver *d;
 
-/* Spline for cosmological tables */
-struct strooklat spline_tab;
-
-void prepare_fluid_integration(struct model *m, struct units *us,
-                               struct cosmology_tables *tab, double tol,
+void prepare_fluid_integrator(struct model *m, struct units *us,
+                               struct cosmology_tables *tab,
+                               struct strooklat *spline_cosmo, double tol,
                                double hstart) {
 
     /* Prepare the parameters for the fluid ODEs */
-    odep.spline = &spline_tab;
+    odep.spline = spline_cosmo;
     odep.tab = tab;
     odep.f_b = m->Omega_b / (m->Omega_c + m->Omega_b);
-    odep.c_s = 134.423 / m->M_nu[0] * KM_METRES / us->UnitLengthMetres * us->UnitTimeSeconds;
+    /* Neutrino speed of sound from Blas+14 (could use CLASS estimate instead) */
+    odep.c_s = us->SoundSpeedNeutrinos / m->M_nu[0];
 
-    /* Allocate GSL ODE drive */
+    /* Allocate GSL ODE driver */
     d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk8pd, hstart, tol, tol);
-
-    /* Prepare a spline for the cosmological tables */
-    spline_tab.x = tab->avec;
-    spline_tab.size = tab->size;
-    init_strooklat_spline(&spline_tab, 100);
 }
 
 void integrate_fluid_equations(struct model *m, struct units *us,
@@ -100,15 +93,10 @@ void integrate_fluid_equations(struct model *m, struct units *us,
     /* The wavenumber of interest */
     odep.k = gfac->k;
 
-    /* Find the values at the starting redshift and normalize */
-    double delta_c = gfac->delta_c;
-    double delta_b = gfac->delta_b;
-    double delta_n = gfac->delta_n;
-
     /* Initial conditions, normalized by the cdm density */
-    double beta_c = delta_c / delta_c;
-    double beta_b = delta_b / delta_c;
-    double beta_n = delta_n / delta_c;
+    double beta_c = gfac->delta_c / gfac->delta_c;
+    double beta_b = gfac->delta_b / gfac->delta_c;
+    double beta_n = gfac->delta_n / gfac->delta_c;
 
     /* Growth rates at a_start */
     double gc = gfac->gc;
@@ -134,10 +122,7 @@ void integrate_fluid_equations(struct model *m, struct units *us,
     gfac->Dn = beta_n / Dn_final;
 }
 
-void clean_fluid_integration() {
+void free_fluid_integrator() {
     /* Free the GSL ODE drive */
     gsl_odeiv2_driver_free(d);
-
-    /* Free the perturbation splines */
-    free_strooklat_spline(&spline_tab);
 }

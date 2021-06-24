@@ -137,7 +137,6 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
     struct strooklat spline = {tab->avec, size};
     init_strooklat_spline(&spline, 100);
 
-
     /* The critical density */
     const double h = m->h;
     const double H_0 = h * 100 * KM_METRES / MPC_METRES * us->UnitTimeSeconds;
@@ -277,7 +276,6 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
         tab->Bvec[i] = -1.5 * Omega_m[i] / (a * a * a) / E2a[i];
     }
 
-
     free(Omega_nu_nr);
     free(Omega_r);
     free(Omega_m);
@@ -286,7 +284,7 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
     free(w_nu);
     free(dHdloga);
     free(E2a);
-
+    free(Ga);
 
     /* Free the interpolation tables */
     free(y);
