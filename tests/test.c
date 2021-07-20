@@ -71,8 +71,10 @@ int main() {
     /* Get the Hubble rate at a_start */
     double H_start = get_H_of_a(&tab, a_start);
     double H0 = get_H_of_a(&tab, 1.0);
+    double f_nu_nr_0 = get_f_nu_nr_of_a(&tab, 1.0);
     printf("H(a_start) = %g 1/U_t\n", H_start);
-    printf("H(a_start) = %.10g km/s/Mpc\n", H_start / H0 * 100 * m.h);
+    printf("H(a_today) = %.10g km/s/Mpc\n", H_start / H0 * 100 * m.h);
+    printf("f_nu_nr(a_today) = %.10g\n", f_nu_nr_0);
     
     printf("Integrating fluid equations.\n");
     

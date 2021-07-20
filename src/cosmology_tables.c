@@ -310,6 +310,20 @@ double get_H_of_a(struct cosmology_tables *tab, double a) {
     return Ha;
 }
 
+double get_f_nu_nr_of_a(struct cosmology_tables *tab, double a) {
+    /* Prepare a spline for the scale factor */
+    struct strooklat spline = {tab->avec, tab->size};
+    init_strooklat_spline(&spline, 100);
+
+    /* Interpolate */
+    double Ha = strooklat_interp(&spline, tab->f_nu_nr, a);
+
+    /* Free the spline */
+    free_strooklat_spline(&spline);
+
+    return Ha;
+}
+
 void free_cosmology_tables(struct cosmology_tables *tab) {
     free(tab->avec);
     free(tab->Avec);
