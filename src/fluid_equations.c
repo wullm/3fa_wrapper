@@ -73,15 +73,26 @@ gsl_odeiv2_driver *d;
 struct strooklat spline_cosmo;
 
 void prepare_fluid_integrator(struct model *m, struct units *us,
-                               struct cosmology_tables *tab, double tol,
-                               double hstart) {
+                              struct cosmology_tables *tab, double tol,
+                              double hstart) {
+
+    /* Compute the mass-weighted average neutrino sound speed. */
+    double weight_c_s_sum = 0;
+    double weight_sum = 0;
+    for (int i = 0; i < m->N_nu; i++) {
+        /* Neutrino sound speed estimate from Blas+14 */
+        double c_s = us->SoundSpeedNeutrinos / m->M_nu[i];
+        double weight = m->deg_nu[i] * m->M_nu[i];
+        weight_c_s_sum += weight * c_s;
+        weight_sum += weight;
+    }
+    double c_s_avg = weight_c_s_sum / weight_sum;
 
     /* Prepare the parameters for the fluid ODEs */
     odep.spline = &spline_cosmo;
     odep.tab = tab;
     odep.f_b = m->Omega_b / (m->Omega_c + m->Omega_b);
-    /* Neutrino speed of sound from Blas+14 (could use CLASS estimate instead) */
-    odep.c_s = us->SoundSpeedNeutrinos / m->M_nu[0];
+    odep.c_s = c_s_avg;
 
     /* Allocate GSL ODE driver */
     d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk8pd, hstart, tol, tol);
