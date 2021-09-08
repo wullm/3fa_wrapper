@@ -86,7 +86,12 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
         weight_c_s_sum += weight * c_s;
         weight_sum += weight;
     }
-    double c_s_avg = weight_c_s_sum / weight_sum;
+    double c_s_avg;
+    if (m->N_nu == 0 || weight_sum == 0) {
+        c_s_avg = 0.;
+    } else {
+        c_s_avg = weight_c_s_sum / weight_sum;
+    }
 
     /* Prepare the parameters for the fluid ODEs */
     odep.spline = &spline_cosmo;
