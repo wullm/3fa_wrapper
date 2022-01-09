@@ -34,8 +34,8 @@ int main() {
     struct growth_factors gfac;
 
     /* Choice of neutrino masses */
-    double M_nu[1] = {0.067666666};
-    double deg_nu[1] = {3.0};
+    double M_nu[2] = {0.01, 0.05};
+    double deg_nu[2] = {1.0, 2.0};
 
     /* Specify the cosmological model */
     m.h = 0.6771;
@@ -43,7 +43,7 @@ int main() {
     m.Omega_c = 0.2491464152;
     m.Omega_k = 0.;
     m.N_ur = 0.00441;
-    m.N_nu = 1;
+    m.N_nu = 2;
     m.M_nu = M_nu;
     m.deg_nu = deg_nu;
     m.T_nu_0 = 1.951757805;
@@ -91,9 +91,9 @@ int main() {
     for (int i=0; i<k_size; i++) {
         double k = exp(log_k_min + i * (log_k_max - log_k_min) / k_size);
 
-        double delta_n[1] = {exp(-k*k)};
-        double gn[1] = {0.6};
-        double Dn[1];
+        double delta_n[2] = {exp(- k * k), exp( k * k)};
+        double gn[2] = {0.6, 0.6};
+        double Dn[2];
 
         gfac.k = k;
         gfac.delta_b = 1.0;
@@ -106,7 +106,7 @@ int main() {
 
         integrate_fluid_equations(&m, &us, &pcs, &tab, &gfac, a_start, a_final);
 
-        printf("%g %g %g %g\n", gfac.k, gfac.Dc, gfac.Db, gfac.Dn[0]);
+        printf("%g %g %g %g %g\n", gfac.k, gfac.Dc, gfac.Db, gfac.Dn[0], gfac.Dn[1]);
     }
 
     /* Done with integration */

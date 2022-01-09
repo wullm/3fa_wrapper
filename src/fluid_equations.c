@@ -36,6 +36,7 @@ struct ode_params {
     double k;
     double f_b;
     double c_s;
+    int N_nu;
 };
 
 int func (double loga, const double y[], double f[], void *params) {
@@ -43,31 +44,55 @@ int func (double loga, const double y[], double f[], void *params) {
     struct strooklat *spline = p->spline;
     struct cosmology_tables *tab = p->tab;
 
+    const int N_nu = p->N_nu;
+
+    /* Cosmological functions of time */
     double a = exp(loga);
     double A = strooklat_interp(spline, tab->Avec, a);
     double B = strooklat_interp(spline, tab->Bvec, a);
     double H = strooklat_interp(spline, tab->Hvec, a);
-    double f_nu_nr_tot = strooklat_interp(spline, tab->f_nu_nr_tot, a);
 
+    /* Non-relativistic neutrino density fractions */
+    double f_nu_nr_tot = 0.;
+    double f_nu_nr[N_nu];
+    for (int i = 0; i < N_nu; i++) {
+        f_nu_nr[i] = strooklat_interp(spline, tab->f_nu_nr + i * tab->size, a);
+        f_nu_nr_tot += f_nu_nr[i];
+    }
+
+    /* Pull down other constants */
     double c_s = p->c_s / a;
     double k = p->k;
     double k_fs2 = -B * H * H / (c_s * c_s) * (a * a);
     double f_b = p->f_b;
+
+    /* The cdm and baryon density perturbation */
     double D_cb = (1.0 - f_b) * y[0] + f_b * y[2];
 
+    /* The total neutrino density perturbation */
+    double D_nu_tot = 0.;
+    for (int i = 0; i < N_nu; i++) {
+        D_nu_tot += y[4 + 2 * i] * f_nu_nr[i] / f_nu_nr_tot;
+    }
+
+    /* CDM */
     f[0] = -y[1];
-    f[1] = A * y[1] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * y[4]);
+    f[1] = A * y[1] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * D_nu_tot);
+    /* Baryons */
     f[2] = -y[3];
-    f[3] =  A * y[3] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * y[4]);
-    f[4] = -y[5];
-    f[5] = A * y[5] + B * ((1.0 - f_nu_nr_tot) * D_cb + (f_nu_nr_tot - (k*k)/k_fs2)*y[4]);
+    f[3] =  A * y[3] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * D_nu_tot);
+    /* Neutrinos */
+    for (int i = 0; i < N_nu; i++) {
+        f[4 + 2 * i] = -y[5 + 2 * i];
+        f[5 + 2 * i] = A * y[5 + 2 * i] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * D_nu_tot - (k * k) / k_fs2 * y[4 + 2 * i]);
+    }
 
     return GSL_SUCCESS;
 }
 
 /* GSL ODE integrator */
 struct ode_params odep;
-gsl_odeiv2_system sys = {func, NULL, 6, &odep};
+gsl_odeiv2_system sys = {func, NULL, 0, &odep};
 gsl_odeiv2_driver *d;
 
 struct strooklat spline_cosmo;
@@ -94,11 +119,16 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
         c_s_avg = weight_c_s_sum / weight_sum;
     }
 
+    /* Set the dimension of the system (2nd order ODE for cdm, baryons, and
+     * N neutrino species makes for 4 + 2N degrees of greedom) */
+    sys.dimension = 4 + 2 * m->N_nu;
+
     /* Prepare the parameters for the fluid ODEs */
     odep.spline = &spline_cosmo;
     odep.tab = tab;
     odep.f_b = m->Omega_b / (m->Omega_c + m->Omega_b);
     odep.c_s = c_s_avg;
+    odep.N_nu = m->N_nu;
 
     /* Allocate GSL ODE driver */
     d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk8pd, hstart, tol, tol);
@@ -118,33 +148,62 @@ void integrate_fluid_equations(struct model *m, struct units *us,
     /* The wavenumber of interest */
     odep.k = gfac->k;
 
-    /* Initial conditions, normalized by the cdm density */
-    double beta_c = gfac->delta_c / gfac->delta_c;
-    double beta_b = gfac->delta_b / gfac->delta_c;
-    double beta_n = gfac->delta_n / gfac->delta_c;
+    /* The number of neutrino species */
+    const int N_nu = m->N_nu;
+
+    /* Dimension of the problem (2nd order ODE for cdm, baryons, and N
+     * neutrino species makes for 4 + 2N degrees of greedom) */
+    const int dim = 4 + 2 * N_nu;
+
+    /* The initial conditions */
+    double Dc_ini = gfac->delta_c;
+    double Db_ini = gfac->delta_b;
+    double *Dn_ini = gfac->delta_n;
 
     /* Growth rates at a_start */
     double gc = gfac->gc;
     double gb = gfac->gb;
-    double gn = gfac->gn;
+    double *gn = gfac->gn;
 
-    /* Prepare the initial conditions */
-    double y[6] = {beta_c, -gc * beta_c, beta_b, -gb * beta_b, beta_n, -gn * beta_n};
-    double loga = log(a_start);
-    double loga_final = log(a_final);
+    /* Prepare the state variables */
+    double *y = malloc(dim * sizeof(double));
+
+    /* CDM */
+    y[0] = Dc_ini;
+    y[1] = -gc * Dc_ini;
+    /* Baryons */
+    y[2] = Db_ini;
+    y[3] = -gb * Db_ini;
+    /* Neutrinos */
+    for (int i = 0; i < m->N_nu; i++) {
+        y[4 + 2 * i] = Dn_ini[i];
+        y[5 + 2 * i] = -gn[i] * Dn_ini[i];
+    }
+
+    /* We will integrate from log(a) = log(a_start) to log(a_final) */
+    double log_a = log(a_start);
+    double log_a_final = log(a_final);
 
     /* Integrate */
-    gsl_odeiv2_driver_apply(d, &loga, loga_final, y);
+    gsl_odeiv2_driver_apply(d, &log_a, log_a_final, y);
 
     /* Extract the final densities */
     double Dc_final = y[0];
     double Db_final = y[2];
-    double Dn_final = y[4];
+    double Dn_final[N_nu];
+    for (int i = 0; i < N_nu; i++) {
+        Dn_final[i] = y[4 + 2 * i];
+    }
 
     /* Store the relative growth factors between a_start and a_final */
-    gfac->Dc = beta_c / Dc_final;
-    gfac->Db = beta_b / Db_final;
-    gfac->Dn = beta_n / Dn_final;
+    gfac->Dc = Dc_ini / Dc_final;
+    gfac->Db = Db_ini / Db_final;
+    for (int i = 0; i < N_nu; i++) {
+        gfac->Dn[i] = Dn_ini[i] / Dn_final[i];
+    }
+
+    /* Free the state variables */
+    free(y);
 }
 
 void free_fluid_integrator() {

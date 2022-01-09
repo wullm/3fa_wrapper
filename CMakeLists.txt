@@ -29,3 +29,5 @@ target_include_directories(3fa_shared PUBLIC include)
 
 add_executable(test_3fa tests/test.c)
 target_link_libraries(test_3fa PRIVATE 3fa::3fa_static)
+add_executable(multi_test tests/test_multi.c)
+target_link_libraries(multi_test PRIVATE 3fa::3fa_static)

@@ -29,15 +29,15 @@ struct growth_factors {
     /* Density transfer functions at a_start (input) */
     double delta_c;
     double delta_b;
-    double delta_n;
+    double *delta_n;
     /* Growth rates at a_start: g = f = dlog(D)/dlog(a) (input)*/
     double gc;
     double gb;
-    double gn;
+    double *gn;
     /* Relative growth factors between a_start and a_final (output) */
     double Dc;
     double Db;
-    double Dn;
+    double *Dn;
 };
 
 void integrate_fluid_equations(struct model *m, struct units *us,
