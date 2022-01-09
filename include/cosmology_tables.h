@@ -31,6 +31,7 @@ struct model {
     int N_nu;
     double *M_nu;
     double *deg_nu;
+    double *c_s_nu;
     double T_nu_0;
     double T_CMB_0;
     double w0;
@@ -55,6 +56,8 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
                                 struct cosmology_tables *tab, double a_start,
                                 double a_final, int size);
 void free_cosmology_tables(struct cosmology_tables *tab);
+void set_neutrino_sound_speeds(struct model *m, struct units *us,
+                               struct physical_consts *pcs);
 
 double get_H_of_a(struct cosmology_tables *tab, double a);
 double get_f_nu_nr_tot_of_a(struct cosmology_tables *tab, double a);

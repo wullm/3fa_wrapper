@@ -36,6 +36,7 @@ int main() {
     /* Choice of neutrino masses */
     double M_nu[2] = {0.01, 0.05};
     double deg_nu[2] = {1.0, 2.0};
+    double c_s_nu[2];
 
     /* Specify the cosmological model */
     m.h = 0.6771;
@@ -46,6 +47,7 @@ int main() {
     m.N_nu = 2;
     m.M_nu = M_nu;
     m.deg_nu = deg_nu;
+    m.c_s_nu = c_s_nu;
     m.T_nu_0 = 1.951757805;
     m.T_CMB_0 = 2.7255;
     m.w0 = -1.0;
@@ -59,6 +61,9 @@ int main() {
     us.UnitTemperatureKelvin = 1.0;
     us.UnitCurrentAmpere = 1.0;
     set_physical_constants(&us, &pcs);
+
+    /* Set default neutrino sound speed */
+    set_neutrino_sound_speeds(&m, &us, &pcs);
 
     /* Starting and final redshifts */
     const double a_start = 1.0 / 128.0;

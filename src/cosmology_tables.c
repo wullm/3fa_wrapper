@@ -346,6 +346,16 @@ double get_f_nu_nr_tot_of_a(struct cosmology_tables *tab, double a) {
     return f_nu_nr_tot;
 }
 
+void set_neutrino_sound_speeds(struct model *m, struct units *us,
+                               struct physical_consts *pcs) {
+
+    /* Use the estimate from Blas+14 as default */
+    for (int i = 0; i < m->N_nu; i++) {
+        m->c_s_nu[i] = pcs->SoundSpeedNeutrinos / m->M_nu[i];
+    }
+
+}
+
 void free_cosmology_tables(struct cosmology_tables *tab) {
     free(tab->avec);
     free(tab->Avec);
