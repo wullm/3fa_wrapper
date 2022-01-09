@@ -109,15 +109,24 @@ class MODEL(ctypes.Structure):
     def compute(self, units, physical_consts, a_start, a_final = 1.05, size = 1000):
         integrate_cosmology_tables(self, units, physical_consts, self.tables, a_start, a_final, size)
 
+    def get_H_of_a(self, a):
+        return get_H_of_a(self.tables, a)
+
+    def get_f_nu_nr_tot_of_a(self, a):
+        return get_f_nu_nr_tot_of_a(self.tables, a)
+
 
 backend.engine.integrate_cosmology_tables.argtypes = [ctypes.POINTER(MODEL), ctypes.POINTER(units.UNITS), ctypes.POINTER(units.PHYSICAL_CONSTS), ctypes.POINTER(TABLES), ctypes.c_double, ctypes.c_double, ctypes.c_int]
-backend.engine.integrate_cosmology_tables.restypes = []
 
 backend.engine.free_cosmology_tables.argtypes = [ctypes.POINTER(TABLES)]
-backend.engine.free_cosmology_tables.restypes = []
 
 backend.engine.set_neutrino_sound_speeds.argtypes = [ctypes.POINTER(MODEL), ctypes.POINTER(units.UNITS), ctypes.POINTER(units.PHYSICAL_CONSTS)]
-backend.engine.set_neutrino_sound_speeds.restypes = []
+
+backend.engine.get_H_of_a.argtypes = [ctypes.POINTER(TABLES), ctypes.c_double]
+backend.engine.get_H_of_a.restype = ctypes.c_double
+
+backend.engine.get_f_nu_nr_tot_of_a.argtypes = [ctypes.POINTER(TABLES), ctypes.c_double]
+backend.engine.get_f_nu_nr_tot_of_a.restype = ctypes.c_double
 
 def integrate_cosmology_tables(model, units, physical_consts, tables, a_start, a_final, size):
     """
@@ -185,3 +194,39 @@ def set_neutrino_sound_speeds(model, units, physical_consts):
     backend.engine.set_neutrino_sound_speeds(ctypes.byref(model), ctypes.byref(units), ctypes.byref(physical_consts))
 
     return True
+
+
+def get_H_of_a(tables, a):
+    """
+    Get the Hubble rate as a function of scale factor a
+    Parameters
+    ----------
+    tables : TABLES
+        the cosmological tables to be calculated
+    a: double
+        the scale factor time
+    Return
+    ------
+    double
+        The Hubble rate in internal units
+    """
+
+    return backend.engine.get_H_of_a(ctypes.byref(tables), a)
+
+def get_f_nu_nr_tot_of_a(tables, a):
+    """
+    Get the mass fraction of non-relativistic neutrinos summed over all
+    neutrino species, as a function of scale factor a
+    Parameters
+    ----------
+    tables : TABLES
+        the cosmological tables to be calculated
+    a: double
+        the scale factor time
+    Return
+    ------
+    double
+        The non-relativistic neutrino fraction
+    """
+
+    return backend.engine.get_f_nu_nr_tot_of_a(ctypes.byref(tables), a)
