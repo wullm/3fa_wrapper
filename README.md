@@ -67,5 +67,5 @@ f_nu = model.get_f_nu_nr_tot_of_a(1.0)
 print("The neutrino fraction is:", f_nu)
 ```
 
-See example.py for an a calculation of growth factors using growth rates
+See `class_example.py` for a calculation of growth factors using growth rates
 from classy.
