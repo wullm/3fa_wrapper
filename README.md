@@ -20,7 +20,7 @@ cd ..
 
 Then the python package can be loaded with
 
-```
+```python
 import trifa
 ```
 
@@ -35,7 +35,7 @@ Example
 The following snippet computes the present-day mass fraction of
 non-relativistic neutrinos for a given cosmological model.
 
-```
+```python
 from trifa import *
 
 # The neutrino species
