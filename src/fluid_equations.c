@@ -73,6 +73,7 @@ gsl_odeiv2_driver *d;
 struct strooklat spline_cosmo;
 
 void prepare_fluid_integrator(struct model *m, struct units *us,
+                              struct physical_consts *pcs,
                               struct cosmology_tables *tab, double tol,
                               double hstart) {
 
@@ -81,7 +82,7 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
     double weight_sum = 0;
     for (int i = 0; i < m->N_nu; i++) {
         /* Neutrino sound speed estimate from Blas+14 */
-        double c_s = us->SoundSpeedNeutrinos / m->M_nu[i];
+        double c_s = pcs->SoundSpeedNeutrinos / m->M_nu[i];
         double weight = m->deg_nu[i] * m->M_nu[i];
         weight_c_s_sum += weight * c_s;
         weight_sum += weight;
@@ -101,7 +102,7 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
 
     /* Allocate GSL ODE driver */
     d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk8pd, hstart, tol, tol);
-    
+
     /* Prepare a spline for the cosmological tables */
     spline_cosmo.x = tab->avec;
     spline_cosmo.size = tab->size;
@@ -109,6 +110,7 @@ void prepare_fluid_integrator(struct model *m, struct units *us,
 }
 
 void integrate_fluid_equations(struct model *m, struct units *us,
+                               struct physical_consts *pcs,
                                struct cosmology_tables *tab,
                                struct growth_factors *gfac,
                                double a_start, double a_final) {
@@ -148,7 +150,7 @@ void integrate_fluid_equations(struct model *m, struct units *us,
 void free_fluid_integrator() {
     /* Free the GSL ODE drive */
     gsl_odeiv2_driver_free(d);
-    
+
     /* Free the spline */
     free_strooklat_spline(&spline_cosmo);
 }

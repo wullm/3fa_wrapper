@@ -23,22 +23,22 @@
 #include <math.h>
 #include "../include/units.h"
 
-int set_physical_constants(struct units *us) {
+int set_physical_constants(struct units *us, struct physical_consts *pcs) {
     /* Some physical constants */
-    us->SpeedOfLight = SPEED_OF_LIGHT_METRES_SECONDS * us->UnitTimeSeconds
+    pcs->SpeedOfLight = SPEED_OF_LIGHT_METRES_SECONDS * us->UnitTimeSeconds
                         / us->UnitLengthMetres;
-    us->GravityG = GRAVITY_G_SI_UNITS * us->UnitTimeSeconds * us->UnitTimeSeconds
+    pcs->GravityG = GRAVITY_G_SI_UNITS * us->UnitTimeSeconds * us->UnitTimeSeconds
                     / us->UnitLengthMetres / us->UnitLengthMetres / us->UnitLengthMetres
                     * us->UnitMassKilogram; // m^3 / kg / s^2 to internal
-    us->hPlanck = PLANCK_CONST_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
+    pcs->hPlanck = PLANCK_CONST_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
                     / us->UnitLengthMetres * us->UnitTimeSeconds; //J*s = kg*m^2/s
-    us->kBoltzmann = BOLTZMANN_CONST_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
+    pcs->kBoltzmann = BOLTZMANN_CONST_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
                     / us->UnitLengthMetres * us->UnitTimeSeconds * us->UnitTimeSeconds
                     * us->UnitTemperatureKelvin; //J/K = kg*m^2/s^2/K
-    us->ElectronVolt = ELECTRONVOLT_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
+    pcs->ElectronVolt = ELECTRONVOLT_SI_UNITS / us->UnitMassKilogram / us->UnitLengthMetres
                     / us->UnitLengthMetres * us->UnitTimeSeconds
                     * us->UnitTimeSeconds; // J = kg*m^2/s^2
-    us->SoundSpeedNeutrinos = NEUTRINO_SOUND_SPEED_1EV_SI_UNITS * us->UnitTimeSeconds
+    pcs->SoundSpeedNeutrinos = NEUTRINO_SOUND_SPEED_1EV_SI_UNITS * us->UnitTimeSeconds
                         / us->UnitLengthMetres;
 
     return 0;

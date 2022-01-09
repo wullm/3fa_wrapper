@@ -25,13 +25,14 @@
 #include <3fa.h>
 
 int main() {
-    
+
     /* 3FA structs */
     struct model m;
     struct units us;
+    struct physical_consts pcs;
     struct cosmology_tables tab;
     struct growth_factors gfac;
-    
+
     /* Choice of neutrino masses */
     double M_nu[1] = {0.067666666};
     double deg_nu[1] = {3.0};
@@ -50,24 +51,24 @@ int main() {
     m.w0 = -1.0;
     m.wa = 0.0;
     m.sim_neutrino_nonrel_masses = 1;
-    
+
     /* Set up 3FA unit system */
     us.UnitLengthMetres = MPC_METRES;
     us.UnitTimeSeconds = 1.0;
     us.UnitMassKilogram = 1.0;
     us.UnitTemperatureKelvin = 1.0;
     us.UnitCurrentAmpere = 1.0;
-    set_physical_constants(&us);
-    
+    set_physical_constants(&us, &pcs);
+
     /* Starting and final redshifts */
     const double a_start = 1.0 / 128.0;
     const double a_final = 1.0;
-    
+
     printf("Integrating cosmological tables.\n");
-    
+
     /* Integrate the cosmological tables */
-    integrate_cosmology_tables(&m, &us, &tab, a_start, a_final, 1000);
-    
+    integrate_cosmology_tables(&m, &us, &pcs, &tab, a_start, a_final, 1000);
+
     /* Get the Hubble rate at a_start */
     double H_start = get_H_of_a(&tab, a_start);
     double H0 = get_H_of_a(&tab, 1.0);
@@ -75,42 +76,42 @@ int main() {
     printf("H(a_start) = %g 1/U_t\n", H_start);
     printf("H(a_today) = %.10g km/s/Mpc\n", H_start / H0 * 100 * m.h);
     printf("f_nu_nr(a_today) = %.10g\n", f_nu_nr_0);
-    
+
     printf("Integrating fluid equations.\n");
-    
+
     /* Prepare integrating the fluid equations */
     const double tol = 1e-12;
     const double hstart = 1e-12;
-    prepare_fluid_integrator(&m, &us, &tab, tol, hstart);
-    
+    prepare_fluid_integrator(&m, &us, &pcs, &tab, tol, hstart);
+
     /* Integrate */
     int k_size = 10;
     double log_k_min = log(1e-5);
     double log_k_max = log(1e2);
     for (int i=0; i<k_size; i++) {
         double k = exp(log_k_min + i * (log_k_max - log_k_min) / k_size);
-    
+
         gfac.k = k;
         gfac.delta_b = 1.0;
         gfac.delta_c = 1.0;
         gfac.delta_n = exp(-k*k);
         gfac.gb = 1.0;
         gfac.gc = 1.0;
-        gfac.gn = 0.6;        
-    
-        integrate_fluid_equations(&m, &us, &tab, &gfac, a_start, a_final);
-    
+        gfac.gn = 0.6;
+
+        integrate_fluid_equations(&m, &us, &pcs, &tab, &gfac, a_start, a_final);
+
         printf("%g %g %g %g\n", gfac.k, gfac.Dc, gfac.Db, gfac.Dn);
     }
-    
+
     /* Done with integration */
     free_fluid_integrator();
-    
+
     /* Free the cosmological spline and tables */
     free_cosmology_tables(&tab);
-    
-    
+
+
     printf("All done.\n");
-    
+
     return 0;
 }

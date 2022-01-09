@@ -63,6 +63,7 @@ double E2(double a, double Omega_CMB, double Omega_ur, double Omega_nu,
 }
 
 void integrate_cosmology_tables(struct model *m, struct units *us,
+                                struct physical_consts *pcs,
                                 struct cosmology_tables *tab, double a_start,
                                 double a_final, int size) {
 
@@ -141,16 +142,16 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
     /* The critical density */
     const double h = m->h;
     const double H_0 = h * 100 * KM_METRES / MPC_METRES * us->UnitTimeSeconds;
-    const double G_grav = us->GravityG;
+    const double G_grav = pcs->GravityG;
     const double rho_crit_0 = 3.0 * H_0 * H_0 / (8.0 * M_PI * G_grav);
 
     /* First, calculate the present-day CMB density from the temperature */
-    const double h_bar = us->hPlanck / (2.0 * M_PI);
-    const double kT = m->T_CMB_0 * us->kBoltzmann;
-    const double hc = h_bar * us->SpeedOfLight;
+    const double h_bar = pcs->hPlanck / (2.0 * M_PI);
+    const double kT = m->T_CMB_0 * pcs->kBoltzmann;
+    const double hc = h_bar * pcs->SpeedOfLight;
     const double kT4 = kT * kT * kT * kT;
     const double hc3 = hc * hc * hc;
-    const double c2 = us->SpeedOfLight * us->SpeedOfLight;
+    const double c2 = pcs->SpeedOfLight * pcs->SpeedOfLight;
     const double Omega_CMB = M_PI * M_PI / 15.0 * (kT4 / hc3) / (rho_crit_0 * c2);
 
     /* Other density components */
@@ -166,7 +167,7 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
 
     /* Now, we want to evaluate the neutrino density and equation of state */
     const int N_nu = m->N_nu;
-    const double kT_nu_eV_0 = m->T_nu_0 * us->kBoltzmann / us->ElectronVolt;
+    const double kT_nu_eV_0 = m->T_nu_0 * pcs->kBoltzmann / pcs->ElectronVolt;
     const double T_on_pi = m->T_nu_0 / m->T_CMB_0 / M_PI;
     const double pre_factor = Omega_CMB * 15.0 * T_on_pi * T_on_pi * T_on_pi * T_on_pi;
     double *Omega_nu = malloc(N_nu * size * sizeof(double));

@@ -41,11 +41,13 @@ struct growth_factors {
 };
 
 void integrate_fluid_equations(struct model *m, struct units *us,
+                               struct physical_consts *pcs,
                                struct cosmology_tables *tab,
                                struct growth_factors *gfac,
                                double a_start, double a_final);
 
 void prepare_fluid_integrator(struct model *m, struct units *us,
+                              struct physical_consts *pcs,
                               struct cosmology_tables *tab, double tol,
                               double hstart);
 void free_fluid_integrator();

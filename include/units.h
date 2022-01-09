@@ -37,7 +37,9 @@ struct units {
     double UnitMassKilogram;
     double UnitTemperatureKelvin;
     double UnitCurrentAmpere;
+};
 
+struct physical_consts {
     /* Physical constants in internal units */
     double SpeedOfLight;
     double GravityG;
@@ -47,6 +49,6 @@ struct units {
     double SoundSpeedNeutrinos;
 };
 
-int set_physical_constants(struct units *us);
+int set_physical_constants(struct units *us, struct physical_consts *pcs);
 
 #endif

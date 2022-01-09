@@ -50,6 +50,7 @@ struct cosmology_tables {
 };
 
 void integrate_cosmology_tables(struct model *m, struct units *us,
+                                struct physical_consts *pcs,
                                 struct cosmology_tables *tab, double a_start,
                                 double a_final, int size);
 void free_cosmology_tables(struct cosmology_tables *tab);
