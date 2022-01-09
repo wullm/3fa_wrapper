@@ -6,23 +6,23 @@ growth factors for massive neutrino cosmologies using a 3-fluid approximation,
 following Zennaro+16. Supports multi-fluid models with distinct transfer
 functions and interfaces with classy.
 
-Quick Starting Guide
---------------------
+Quick Installation
+------------------
 
 First build the C library with
 
-``
+```
 mkdir build && cd build
 cmake ..
 make
 cd ..
-``
+```
 
 Then the python package can be loaded with
 
-``
+```
 import trifa
-``
+```
 
 Requirements
 ------------
@@ -35,7 +35,7 @@ Example
 The following snippet computes the present-day mass fraction of
 non-relativistic neutrinos for a given cosmological model.
 
-``
+```
 from trifa import *
 
 # The neutrino species
@@ -65,7 +65,7 @@ model.compute(unit_system, physical_consts, a_start)
 
 f_nu = model.get_f_nu_nr_tot_of_a(1.0)
 print("The neutrino fraction is:", f_nu)
-``
+```
 
 See example.py for an a calculation of growth factors using growth rates
 from classy.
