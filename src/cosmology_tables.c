@@ -198,7 +198,8 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
     double *Omega_nu_tot = malloc(size * sizeof(double));
     double *Omega_r = malloc(size * sizeof(double));
     double *Omega_m = malloc(size * sizeof(double));
-    tab->f_nu_nr = malloc(size * sizeof(double));
+    tab->f_nu_nr = malloc(size * N_nu * sizeof(double));
+    tab->f_nu_nr_tot = malloc(size * sizeof(double));
 
     for (int i=0; i<size; i++) {
 
@@ -221,12 +222,28 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
         }
 
         /* Fraction of non-relativistic neutrinos in matter */
-        tab->f_nu_nr[i] = Omega_nu_nr[i] / Omega_m[i] / tab->avec[i];
+        tab->f_nu_nr_tot[i] = Omega_nu_nr[i] / Omega_m[i] / tab->avec[i];
+
+        /* Fraction per species */
+        for (int j=0; j<N_nu; j++) {
+            const double O_nu = Omega_nu[j * size + i];
+            const double w = w_nu[j * size + i];
+            const double O_nu_nr = (1.0 - 3.0 * w) * O_nu;
+            tab->f_nu_nr[j * size + i] = O_nu_nr / Omega_m[i] / tab->avec[i];
+        }
+    }
+
+    /* The total neutrino density at z = 0 */
+    const double Omega_nu_tot_0 = strooklat_interp(&spline, Omega_nu_tot, 1.0);
+
+    /* The neutrino density per species at z = 0 */
+    double *Omega_nu_0 = malloc(N_nu * sizeof(double));
+    for (int i = 0; i < N_nu; i++) {
+        Omega_nu_0[i] = strooklat_interp(&spline, Omega_nu + i * size, 1.0);
     }
 
     /* Close the universe */
-    const double Omega_nu_0 = strooklat_interp(&spline, Omega_nu_tot, 1.0);
-    const double Omega_lambda = 1.0 - Omega_nu_0 - Omega_k - Omega_ur - Omega_CMB - Omega_c - Omega_b;
+    const double Omega_lambda = 1.0 - Omega_nu_tot_0 - Omega_k - Omega_ur - Omega_CMB - Omega_c - Omega_b;
     const double w0 = m->w0;
     const double wa = m->wa;
 
@@ -261,10 +278,13 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
      * the relativistic contribution into account. */
     if (m->sim_neutrino_nonrel_masses) {
         for (int i=0; i<size; i++) {
-            Omega_m[i] = Omega_cb + Omega_nu_0;
-            Omega_nu_tot[i] = Omega_nu_0;
-            Omega_nu_nr[i] = Omega_nu_0;
-            tab->f_nu_nr[i] = Omega_nu_0 / (Omega_cb + Omega_nu_0);
+            Omega_m[i] = Omega_cb + Omega_nu_tot_0;
+            Omega_nu_tot[i] = Omega_nu_tot_0;
+            Omega_nu_nr[i] = Omega_nu_tot_0;
+            tab->f_nu_nr_tot[i] = Omega_nu_tot_0 / (Omega_cb + Omega_nu_tot_0);
+            for (int j=0; j<N_nu; j++) {
+                tab->f_nu_nr[j * size + i] = Omega_nu_0[j] / (Omega_cb + Omega_nu_tot_0);
+            }
         }
     }
 
@@ -283,6 +303,7 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
     free(Omega_m);
     free(Omega_nu);
     free(Omega_nu_tot);
+    free(Omega_nu_0);
     free(w_nu);
     free(dHdloga);
     free(E2a);
@@ -311,18 +332,18 @@ double get_H_of_a(struct cosmology_tables *tab, double a) {
     return Ha;
 }
 
-double get_f_nu_nr_of_a(struct cosmology_tables *tab, double a) {
+double get_f_nu_nr_tot_of_a(struct cosmology_tables *tab, double a) {
     /* Prepare a spline for the scale factor */
     struct strooklat spline = {tab->avec, tab->size};
     init_strooklat_spline(&spline, 100);
 
     /* Interpolate */
-    double Ha = strooklat_interp(&spline, tab->f_nu_nr, a);
+    double f_nu_nr_tot = strooklat_interp(&spline, tab->f_nu_nr_tot, a);
 
     /* Free the spline */
     free_strooklat_spline(&spline);
 
-    return Ha;
+    return f_nu_nr_tot;
 }
 
 void free_cosmology_tables(struct cosmology_tables *tab) {
@@ -331,4 +352,5 @@ void free_cosmology_tables(struct cosmology_tables *tab) {
     free(tab->Bvec);
     free(tab->Hvec);
     free(tab->f_nu_nr);
+    free(tab->f_nu_nr_tot);
 }

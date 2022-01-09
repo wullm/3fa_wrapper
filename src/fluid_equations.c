@@ -47,7 +47,7 @@ int func (double loga, const double y[], double f[], void *params) {
     double A = strooklat_interp(spline, tab->Avec, a);
     double B = strooklat_interp(spline, tab->Bvec, a);
     double H = strooklat_interp(spline, tab->Hvec, a);
-    double f_nu_nr = strooklat_interp(spline, tab->f_nu_nr, a);
+    double f_nu_nr_tot = strooklat_interp(spline, tab->f_nu_nr_tot, a);
 
     double c_s = p->c_s / a;
     double k = p->k;
@@ -56,11 +56,11 @@ int func (double loga, const double y[], double f[], void *params) {
     double D_cb = (1.0 - f_b) * y[0] + f_b * y[2];
 
     f[0] = -y[1];
-    f[1] = A * y[1] + B * ((1.0 - f_nu_nr) * D_cb + f_nu_nr * y[4]);
+    f[1] = A * y[1] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * y[4]);
     f[2] = -y[3];
-    f[3] =  A * y[3] + B * ((1.0 - f_nu_nr) * D_cb + f_nu_nr * y[4]);
+    f[3] =  A * y[3] + B * ((1.0 - f_nu_nr_tot) * D_cb + f_nu_nr_tot * y[4]);
     f[4] = -y[5];
-    f[5] = A * y[5] + B * ((1.0 - f_nu_nr) * D_cb + (f_nu_nr - (k*k)/k_fs2)*y[4]);
+    f[5] = A * y[5] + B * ((1.0 - f_nu_nr_tot) * D_cb + (f_nu_nr_tot - (k*k)/k_fs2)*y[4]);
 
     return GSL_SUCCESS;
 }

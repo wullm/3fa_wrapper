@@ -46,6 +46,7 @@ struct cosmology_tables {
     double *Bvec;
     double *Hvec;
     double *f_nu_nr;
+    double *f_nu_nr_tot;
     int size;
 };
 
@@ -56,6 +57,6 @@ void integrate_cosmology_tables(struct model *m, struct units *us,
 void free_cosmology_tables(struct cosmology_tables *tab);
 
 double get_H_of_a(struct cosmology_tables *tab, double a);
-double get_f_nu_nr_of_a(struct cosmology_tables *tab, double a);
+double get_f_nu_nr_tot_of_a(struct cosmology_tables *tab, double a);
 
 #endif
